@@ -1,2 +1,2 @@
 console.log("Menjalankan test .... semua tes berhasil");
-ProcessingInstruction.exit(0);
+process.exit(0);
