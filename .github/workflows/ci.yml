@@ -1,4 +1,4 @@
-name: Continous Integration
+name: CI/CD pipeline
 
 on:
     push:
@@ -20,3 +20,23 @@ jobs:
 
             - name: Testing
               run: npm test
+
+    deploy:
+        needs: build-and-test
+        if: github.ref == 'refs/heads/main'
+        permissions:
+            contents: read
+            pages: write
+            id-token: write
+
+        runs-on: ubuntu-latest
+        steps:
+            - name: Upload artifact
+              uses: actions/upload-pages-artifact@v3
+              with: 
+                path: '.'
+            
+            - name: Deploy to Github Pages
+              id: deployment
+              uses: actions/deploy-pages@v4
+
