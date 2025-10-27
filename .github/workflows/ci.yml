@@ -9,6 +9,22 @@ on:
 jobs:
     build-and-test:
         runs-on: ubuntu-latest
+        services:
+          postgre:
+            image: postgres:15
+            env: 
+              POSTGRES_USER: 'postgres'
+              POSTGRES_PASSWORD: 'trNXYmebzvybLcvFekXpTWvZyHQUaCBP'
+              POSTGRES_DB: 'test_db'
+
+            ports:
+              - 5432:5432
+
+            options: >-
+              --health-cmd "pg_isready -h 127.0.0.1 -p 5432 -U postgres -d test_db"
+              --health-interval 10s
+              --health-timeout 5s
+              --health-retries 10
         steps:
             - name: Checkout Repository
               uses: actions/checkout@v4
@@ -28,6 +44,13 @@ jobs:
 
             - name: Testing (Jest)
               run: pnpm test
+              env: 
+                NODE_ENV: 'test'
+                DB_HOST: '127.0.0.1'
+                DB_PORT: 5432
+                DB_USER: 'postgres'
+                DB_PASSWORD: 'trNXYmebzvybLcvFekXpTWvZyHQUaCBP'
+                DB_NAME: 'test_db'
 
     deploy:
         needs: build-and-test
