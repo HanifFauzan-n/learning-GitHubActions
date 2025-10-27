@@ -18,8 +18,11 @@ jobs:
               with: 
                 node-version: '20'
 
-            - name: Testing
-              run: npm test
+            - name: Install Depedensiec
+              uses: pnpm ci
+
+            - name: Testing (Jest)
+              run: pnpm test
 
     deploy:
         needs: build-and-test
