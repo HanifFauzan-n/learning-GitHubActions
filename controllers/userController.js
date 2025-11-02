@@ -18,7 +18,7 @@ const createUser = async (req, res) => {
         res.status(201).json(newUser);
     }
     catch (err) {
-        if(err.message == 'Name is required'){
+        if(err.message == 'Name is Required'){
             res.status(400).json({ error: err.message});
         } else {
             res.status(500).json({ error: err.message});

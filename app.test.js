@@ -51,4 +51,12 @@ describe('API Pengguna', () => {
         expect(result.rows[0].name).toBe('Hanif');
     });
 
+    it('POST /users -- harus mengembalikan error 404 jika name tidak ada ', async () => {
+        const response = await request(server).post('/users').send({});
+
+        expect(response.statusCode).toBe(400);
+
+        expect(response.body.error).toBe("Name is Required");
+    });
+
 });
