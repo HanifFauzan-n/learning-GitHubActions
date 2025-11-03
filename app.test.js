@@ -3,6 +3,8 @@ const request = require('supertest')
 const app = require('./app');
 const {getPool} = require('./db')
 
+const userService = require('./services/userService');
+
 let server;
 let pool;
 
@@ -19,6 +21,8 @@ beforeAll( async ()=> {
 
 beforeEach( async ()=> {
     await pool.query('TRUNCATE TABLE users RESTART IDENTITY CASCADE');
+
+    jest.restoreAllMocks();
 });
 
 afterAll( async ()=> {
@@ -58,5 +62,28 @@ describe('API Pengguna', () => {
 
         expect(response.body.error).toBe("Name is Required");
     });
+
+    it('GET /users -- harus mengembalikan error 500 jika service crash', async () => {
+        const errorMessage = "Database is down";
+        jest.spyOn(userService, 'getAllUsers').mockRejectedValue(new Error(errorMessage));
+
+
+        const response = await request(server).get('/users');
+
+        expect(response.statusCode).toBe(500);
+
+        expect(response.body.error).toBe(errorMessage);
+    })
+
+    it('POST /users -- harus mengembalikan error 500 jika server crash', async () => {
+        const errorMessage = "Database is down";
+        jest.spyOn(userService, 'createNewUser').mockRejectedValue(new Error(errorMessage));
+
+        const response = await request(server).post('/users').send({name: 'Hanif'});
+
+        expect(response.statusCode).toBe(500);
+
+        expect(response.body.error).toBe(errorMessage);
+    })
 
 });
