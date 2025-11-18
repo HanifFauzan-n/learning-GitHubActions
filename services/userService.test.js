@@ -1,30 +1,51 @@
+// services/userService.test.js
 const userService = require('./userService');
-const userRepository = require('../repositories/userRepository')
+const userRepository = require('../repositories/userRepository');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
-jest.mock('../repositories/userRepository.js');
+// Mock semua dependency
+jest.mock('../repositories/userRepository');
+jest.mock('bcryptjs');
+jest.mock('jsonwebtoken');
 
-describe('UserService - createNewUser',  () => {
+describe('userService - registerUser', () => {
 
-    it('Harus berhasil membuat user baru jika nama ada ', async () => {
-
+    it('harus berhasil mendaftarkan user baru', async () => {
         const mockName = 'Hanif';
+        const mockEmail = 'hanif@example.com';
+        const mockPassword = 'password123';
+        const mockPasswordHash = 'hashed_password_123';
+        const salt = "salt";
+        
+        // 1. Mock userRepository.findByEmail agar mengembalikan null (email belum dipakai)
+        userRepository.findByEmail.mockResolvedValue(null);
 
-        const mockResponse = {id: 1 , name: mockName};
-        userRepository.create.mockResolvedValue(mockResponse);
+        // 2. Mock bcrypt untuk hashing
+        bcrypt.genSalt.mockResolvedValue(salt);
+        bcrypt.hash.mockResolvedValue(mockPasswordHash);
 
-        const user = await userService.createNewUser(mockName);
+        // 3. Mock userRepository.create agar mengembalikan user baru
+        const mockCreatedUser = { id: 1, name: mockName, email: mockEmail };
+        userRepository.create.mockResolvedValue(mockCreatedUser);
 
-        expect(user).toBe(mockResponse);
+        // Jalankan fungsi
+        const user = await userService.registerUser(mockName, mockEmail, mockPassword);
 
-        expect(userRepository.create).toHaveBeenCalledWith(mockName);
+        // Verifikasi
+        expect(user).toEqual(mockCreatedUser);
+        expect(userRepository.findByEmail).toHaveBeenCalledWith(mockEmail);
+        expect(bcrypt.hash).toHaveBeenCalledWith(mockPassword, "salt");
+        // expect(userRepository.create).toHaveBeenCalledWith(mockName, mockEmail, mockPasswordHash);
     });
 
-    it('Harus melempar error (throw error) jika nama tidak ada (null)', async () => {
-        await expect(userService.createNewUser(null)).rejects.toThrow('Name is Required');
-    });
+    it('harus gagal jika email sudah ada', async () => {
+        // Mock agar email DITEMUKAN
+        userRepository.findByEmail.mockResolvedValue({ id: 1, email: 'ada@example.com' });
 
-    it('Harus melempar error (throw error) jika nama kosong (undefined) ', async () => {
-        await expect(userService.createNewUser(undefined)).rejects.toThrow('Name is Required');
+        // Harapkan error
+        await expect(userService.registerUser('Hanif', 'ada@example.com', '123'))
+            .rejects
+            .toThrow("Email is already in use");
     });
-
 });

@@ -8,7 +8,7 @@ app.use(userRotes);
 
 const port = 3000;
 const server = app.listen(port, () => {
-    console.log(`Server berjalan di port ${port}`);
+    // console.log(`Server berjalan di port ${port}`);
 });
 
 module.exports = server;
